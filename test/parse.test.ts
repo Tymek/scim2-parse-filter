@@ -83,6 +83,7 @@ describe('parse', () => {
   });
   describe('operator ignore case', () => {
     test(`hoge Eq "hoge"`, eq("hoge", "hoge"));
+    test(`title Pr`, pr("title"));
   });
 
   describe("samples", () => {
@@ -113,9 +114,21 @@ describe('parse', () => {
       `meta.lastModified le "2011-05-13T04:42:34Z"`,
       op("le", "meta.lastModified", "2011-05-13T04:42:34Z")
     );
+    test(`n eq -1 and m eq 2`, and(eq("n", -1), eq("m", 2)));
+    test(`(n eq -2)`, eq("n", -2));
+    test(`emails[value eq -3]`, v("emails", eq("value", -3)));
+    test(`n eq -1.25`, eq("n", -1.25));
+    test(`n eq -1e3`, eq("n", -1000));
     test(
       `title pr and userType eq "Employee"`,
       and(pr("title"), eq("userType", "Employee"))
+    );
+    test(
+      `manager[$ref eq "/v2/Users/q" and value eq "q"] or userName eq "tom"`,
+      or(
+        v("manager", and(eq("$ref", "/v2/Users/q"), eq("value", "q"))),
+        eq("userName", "tom"),
+      ),
     );
     test(
       `title pr or userType eq "Intern"`,
@@ -266,6 +279,10 @@ describe('parse', () => {
         v("emails", and(v("value", eq("hoge", "@example.com")), v("value", eq("hoge", "@example.com")))),
         eq("name", "xxx"))
     );
+
+    it("unterminated quote parse error", () => {
+      assert.throws(() => parse('userName eq "abc'), /unexpected token/);
+    });
   });
 
   describe('attrPath start with number', () => {
